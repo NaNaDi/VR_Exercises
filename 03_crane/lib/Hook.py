@@ -5,6 +5,7 @@ import avango
 import avango.gua
 import avango.script
 from avango.script import field_has_changed
+from lib.KeyboardInput import KeyboardInput
 
 
 class Hook(avango.script.Script):
@@ -15,6 +16,8 @@ class Hook(avango.script.Script):
     # constructor
     def __init__(self):
         self.super(Hook).__init__()
+
+        self.input = KeyboardInput()
 
 
     def my_constructor(self,
@@ -44,8 +47,8 @@ class Hook(avango.script.Script):
         PARENT_NODE.Children.value.append(self.hook_node)
 
 
+
         ## ToDo: init field connections
-        # ...
 
 
     ### callback functions ###
@@ -55,6 +58,9 @@ class Hook(avango.script.Script):
     
     @field_has_changed(sf_mat)
     def sf_mat_changed(self):
+
+        #self.hook_node.Transform.value *= sf_mat.value
+
         _pos = self.sf_mat.value.get_translate() # world position of hook
         
         for _node in self.TARGET_LIST: # iterate over all target nodes

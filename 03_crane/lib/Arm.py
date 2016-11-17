@@ -3,7 +3,7 @@
 # import guacamole libraries
 import avango
 import avango.gua
-
+from lib.KeyboardInput import KeyboardInput
 
 class Arm:
 
@@ -11,6 +11,7 @@ class Arm:
 
     # Number of Hinge instances that have already been created.
     number_of_instances = 0
+
     
   
     # constructor
@@ -30,10 +31,7 @@ class Arm:
 
         _loader = avango.gua.nodes.TriMeshLoader() # get trimesh loader to load external tri-meshes
         
-        ## ToDo: init arm node(s)
-        # ...
-
-        
+        self.input = KeyboardInput() 
 
         self.arm_geometry = _loader.create_geometry_from_file("arm_geometry", "data/objects/cylinder.obj", avango.gua.LoaderFlags.DEFAULTS)
         self.arm_geometry.Transform.value = avango.gua.make_trans_mat(0.0,0.0,0.0) * avango.gua.make_scale_mat(DIAMETER,LENGTH,DIAMETER)
@@ -42,10 +40,8 @@ class Arm:
         self.arm_node = avango.gua.nodes.TransformNode(Name = "ArmNode")
         self.arm_node.Children.value.append(self.arm_geometry)
 
-        PARENT_NODE.Children.value.append(self.arm_node)                        
+        PARENT_NODE.Children.value.append(self.arm_node)      
 
-        #arm bein kopf
-        # PARENT_NODE.Children.value = [Fuss]
     
     def get_arm_node(self):
         return self.arm_node

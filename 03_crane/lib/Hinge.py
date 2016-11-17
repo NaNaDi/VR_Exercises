@@ -5,6 +5,7 @@ import avango
 import avango.gua
 import avango.script
 from avango.script import field_has_changed
+from lib.KeyboardInput import KeyboardInput
 
 
 class Hinge(avango.script.Script):
@@ -24,6 +25,10 @@ class Hinge(avango.script.Script):
         ## get unique id for this instance
         self.id = Hinge.number_of_instances
         Hinge.number_of_instances += 1
+
+        self.input = KeyboardInput()
+
+        
 
 
 
@@ -60,6 +65,9 @@ class Hinge(avango.script.Script):
         self.hinge_node.Children.value.append(self.hinge_geometry)
 
         PARENT_NODE.Children.value.append(self.hinge_node)
+
+        self.sf_rot_value.connect_from(self.input.sf_rot_value0)
+
         
     ### callback functions ###
     def get_hinge_node(self):
@@ -70,5 +78,6 @@ class Hinge(avango.script.Script):
         pass
         ## ToDo: accumulate input to hinge node && consider rotation contraints of this hinge
         # ...
-        
+        self.hinge_node.Transform.value = self.hinge_node.Transform.value * avango.gua.make_trans_mat(self.sf_rot_value.value, 0, 0)
+        print("Hinge trans: ", self.hinge_node.Transform.value)
         

@@ -47,6 +47,7 @@ class Crane:
         self.firsthhinge_node = self.firsthinge.get_hinge_node()
 
 
+
         ## ToDo: init first arm-segment
         # ...
         self.firstarm = Arm(
