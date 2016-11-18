@@ -57,7 +57,7 @@ class Crane:
             ROT_OFFSET_MAT = avango.gua.make_identity_mat(), # the rotation offset relative to the parent coordinate system
             )
         self.firstarm_node = self.firstarm.get_arm_node()
-        self.firstarm_node.Transform.value = avango.gua.make_trans_mat(0,0.01,0)
+        self.firstarm_node.Transform.value = avango.gua.make_trans_mat(0,0.04,0)
 
 
 
@@ -73,7 +73,7 @@ class Crane:
             ROT_CONSTRAINT = [-0.0, 90.0], # intervall with min and max rotation of this hinge
             )
         self.secondhinge_node = self.secondhinge.get_hinge_node()
-        self.secondhinge_node.Transform.value = avango.gua.make_trans_mat(0,0.055,0)
+        self.secondhinge_node.Transform.value = avango.gua.make_trans_mat(0,0.04,0)
 
 
 
@@ -86,7 +86,7 @@ class Crane:
             ROT_OFFSET_MAT = avango.gua.make_identity_mat(), # the rotation offset relative to the parent coordinate system
             )
         self.secondarm_node = self.secondarm.get_arm_node()
-        self.secondarm_node.Transform.value = avango.gua.make_trans_mat(0,0.02,0)
+        self.secondarm_node.Transform.value = avango.gua.make_trans_mat(0,0.04,0)
         
 
         ## ToDo: init third hinge && connect rotation input 
@@ -101,7 +101,7 @@ class Crane:
             ROT_CONSTRAINT = [-90.0, 90.0], # intervall with min and max rotation of this hinge
             )
         self.thirdhinge_node = self.thirdhinge.get_hinge_node()
-        self.thirdhinge_node.Transform.value = avango.gua.make_trans_mat(0,0.055,0)
+        self.thirdhinge_node.Transform.value = avango.gua.make_trans_mat(0,0.04,0)
 
         ## ToDo: init third arm-segment
         # ...
@@ -112,7 +112,7 @@ class Crane:
             ROT_OFFSET_MAT = avango.gua.make_identity_mat(), # the rotation offset relative to the parent coordinate system
             )
         self.thirdarm_node = self.thirdarm.get_arm_node()
-        self.thirdarm_node.Transform.value = avango.gua.make_trans_mat(0,0.02,0)
+        self.thirdarm_node.Transform.value = avango.gua.make_trans_mat(0,0.04,0)
 
 
         ## ToDo: init hook
