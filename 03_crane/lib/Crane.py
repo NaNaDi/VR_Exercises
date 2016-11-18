@@ -13,13 +13,14 @@ from lib.Hook import Hook
 
 
 class Crane:
-  
+
     # constructor
     def __init__(self,
         PARENT_NODE = None,
         TARGET_LIST = [],
         ):
 
+        self.rotation = 0.0
 
         ### resources ###
 
@@ -35,6 +36,7 @@ class Crane:
 
         ## ToDo: init first hinge && connect rotation input 
         # ...
+        #self.sf_rotation.connect_from(self.input.sf_rot_value1)
         self.firsthinge = Hinge()
         self.firsthinge.my_constructor(
             PARENT_NODE = self.base_node,
@@ -43,6 +45,7 @@ class Crane:
             ROT_OFFSET_MAT = avango.gua.make_identity_mat(), # the rotation offset relative to the parent coordinate system
             ROT_AXIS = avango.gua.Vec3(0,1,0), # the axis to rotate arround with the rotation input (default is head axis)
             ROT_CONSTRAINT = [-180.0, 180.0], # intervall with min and max rotation of this hinge
+            BASE = True
             )
         self.firsthhinge_node = self.firsthinge.get_hinge_node()
 

@@ -28,7 +28,7 @@ class Hinge(avango.script.Script):
 
         self.input = KeyboardInput()
 
-        
+        self.degree = 0.0
 
 
 
@@ -39,6 +39,7 @@ class Hinge(avango.script.Script):
         ROT_OFFSET_MAT = avango.gua.make_identity_mat(), # the rotation offset relative to the parent coordinate system
         ROT_AXIS = avango.gua.Vec3(0,1,0), # the axis to rotate arround with the rotation input (default is head axis)
         ROT_CONSTRAINT = [-45.0, 45.0], # intervall with min and max rotation of this hinge
+        BASE = False
         ):
 
 
@@ -50,6 +51,8 @@ class Hinge(avango.script.Script):
         self.rot_axis = ROT_AXIS
         
         self.rot_constraint = ROT_CONSTRAINT
+
+        self.base = BASE
 
 
         ### resources ###
@@ -66,7 +69,10 @@ class Hinge(avango.script.Script):
 
         PARENT_NODE.Children.value.append(self.hinge_node)
 
-        self.sf_rot_value.connect_from(self.input.sf_rot_value0)
+        if self.base:
+            self.sf_rot_value.connect_from(self.input.sf_rot_value0)
+        else:
+            self.sf_rot_value.connect_from(self.input.sf_rot_value1)
 
         
     ### callback functions ###
@@ -78,6 +84,8 @@ class Hinge(avango.script.Script):
         pass
         ## ToDo: accumulate input to hinge node && consider rotation contraints of this hinge
         # ...
-        self.hinge_node.Transform.value = self.hinge_node.Transform.value * avango.gua.make_rot_mat(self.sf_rot_value.value, self.rot_axis)
-        print("Hinge trans: ", self.hinge_node.Transform.value)
-        
+        self.degree += self.sf_rot_value.value
+        print("HingeTrans: ", self.sf_rot_value.value)
+        if self.degree > self.rot_constraint[0] and self.degree < self.rot_constraint[1]:
+            self.hinge_node.Transform.value = self.hinge_node.Transform.value * avango.gua.make_rot_mat(self.sf_rot_value.value, self.rot_axis)
+            #print("Hinge trans: ", self.hinge_node.Transform.value)
