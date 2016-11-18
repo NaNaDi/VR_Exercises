@@ -78,6 +78,6 @@ class Hinge(avango.script.Script):
         pass
         ## ToDo: accumulate input to hinge node && consider rotation contraints of this hinge
         # ...
-        self.hinge_node.Transform.value = self.hinge_node.Transform.value * avango.gua.make_trans_mat(self.sf_rot_value.value, 0, 0)
+        self.hinge_node.Transform.value = self.hinge_node.Transform.value * avango.gua.make_rot_mat(self.sf_rot_value.value, self.rot_axis)
         print("Hinge trans: ", self.hinge_node.Transform.value)
         
