@@ -21,7 +21,7 @@ class Crane:
         ):
 
         self.rotation = 0.0
-
+        self.world_pos = (0,0,0)
         ### resources ###
 
         ## init base node for whole crane
@@ -29,7 +29,7 @@ class Crane:
         self.base_node.Transform.value = avango.gua.make_trans_mat(0.0,-0.1,0.0)
         PARENT_NODE.Children.value.append(self.base_node)
 
-
+        self.targets = TARGET_LIST
         ## init internal sub-classes
         self.input = KeyboardInput()
 
@@ -123,8 +123,10 @@ class Crane:
         self.firsthook.my_constructor(
         PARENT_NODE = self.thirdarm_node,
         SIZE = 0.03,
-        TARGET_LIST = [],
+        TARGET_LIST = self.targets,
+        #TARGET_LIST = []
         )
         self.firsthook_node = self.firsthook.get_hook_node()
         self.firsthook_node.Transform.value = avango.gua.make_trans_mat(0,0.045,0)
+        #self.firsthook.sf_mat.connect_from(self.thirdhinge.sf_world_pos)
  

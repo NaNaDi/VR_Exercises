@@ -5,8 +5,6 @@ import avango
 import avango.gua
 import avango.script
 from avango.script import field_has_changed
-from lib.KeyboardInput import KeyboardInput
-
 
 class Hook(avango.script.Script):
 
@@ -16,21 +14,21 @@ class Hook(avango.script.Script):
     # constructor
     def __init__(self):
         self.super(Hook).__init__()
-
-        self.input = KeyboardInput()
-
+        self.trans_old = avango.gua.make_identity_mat()
+        self.always_evaluate(True)
 
     def my_constructor(self,
         PARENT_NODE = None,
         SIZE = 0.1,
         TARGET_LIST = [],
+        PARENT_POS = (0,0,0)
         ):
 
 
         ### external references ###
         
         self.TARGET_LIST = TARGET_LIST
-
+        self.parent = PARENT_NODE
 
         ### resources ###
         
@@ -45,27 +43,40 @@ class Hook(avango.script.Script):
         self.hook_node.Children.value.append(self.hook_geometry)
 
         PARENT_NODE.Children.value.append(self.hook_node)
-
-
-
+        #print("test test")
         ## ToDo: init field connections
+        self.sf_mat.connect_from(self.hook_geometry.WorldTransform)
+
+
 
 
     ### callback functions ###
 
     def get_hook_node(self):
         return self.hook_node
+
+    def get_world_pos(self, trans_val):
+        curr_trans = self.hook_node.Transform.value
+        return trans_val*curr_trans
+    
+
+
+    def evaluate(self):
+        #print("lala")
+        pass
     
     @field_has_changed(sf_mat)
     def sf_mat_changed(self):
 
         #self.hook_node.Transform.value *= sf_mat.value
-
         _pos = self.sf_mat.value.get_translate() # world position of hook
-        
+        #_pos = self.sf_mat.value.get_translate() * _pos
+
         for _node in self.TARGET_LIST: # iterate over all target nodes
             _bb = _node.BoundingBox.value # get bounding box of a node
             #print(_node.Name.value, _bb.contains(_pos))
+            #print("_pos", _pos)
+            #print("_bb: ", _bb)
             
             if _bb.contains(_pos) == True: # hook inside bounding box of this node
                 _node.Material.value.set_uniform("Color", avango.gua.Vec4(1.0,0.0,0.0,0.85)) # highlight color

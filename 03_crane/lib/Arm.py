@@ -26,6 +26,8 @@ class Arm:
         self.id = Arm.number_of_instances
         Arm.number_of_instances += 1
 
+        self.parent = PARENT_NODE
+
 
         ### resources ###
 
@@ -40,7 +42,8 @@ class Arm:
         self.arm_node = avango.gua.nodes.TransformNode(Name = "ArmNode")
         self.arm_node.Children.value.append(self.arm_geometry)
 
-        PARENT_NODE.Children.value.append(self.arm_node)      
+        PARENT_NODE.Children.value.append(self.arm_node)   
+
 
     
     def get_arm_node(self):
