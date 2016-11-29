@@ -11,7 +11,7 @@ import avango.daemon
 from lib.Device import MouseInput
 
 ### import python libraries
-# ...
+import operator
 
    
 class ManipulationManager(avango.script.Script):
@@ -91,7 +91,7 @@ class ManipulationManager(avango.script.Script):
 
 
         ### set initial states ###
-        self.set_dragging_technique(1) # switch to 1st dragging variant
+        self.set_dragging_technique(2) # switch to 1st dragging variant
 
 
     ### functions ###
@@ -122,7 +122,8 @@ class ManipulationManager(avango.script.Script):
                     _node.WorldTransform.value = _node.Transform.value * _hand_mat
 
                 elif self.dragging_technique == 2: # absolute tool-hand offset to tool space
-                    pass
+                    #pass
+                    _node.DraggingOffsetMatrix.value = self.hand_transform.WorldTransform.value * _node.Transform.value #something about the invert is not working :I
 
                 elif self.dragging_technique == 3: # relative tool input to object space
                     pass
@@ -156,7 +157,8 @@ class ManipulationManager(avango.script.Script):
                 pass
 
             elif self.dragging_technique == 2: # absolute tool-hand offset to tool space
-                pass
+                #pass
+                _node.Transform.value = self.hand_transform.WorldTransform.value *  _node.DraggingOffsetMatrix.value
 
             elif self.dragging_technique == 3: # relative tool input to object space
                 pass
