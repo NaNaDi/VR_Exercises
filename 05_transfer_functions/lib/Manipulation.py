@@ -304,7 +304,7 @@ class ManipulationManager(avango.script.Script):
         _velocity = _distance * 60.0 # application loop runs with 60Hz
         self.lf_hand_mat = self.sf_hand_mat.value
         
-        print(round(_distance, 3), "m/frame  ", round(_velocity, 2), "m/s")
+        #print(round(_distance, 3), "m/frame  ", round(_velocity, 2), "m/s")
 
 
 
@@ -429,15 +429,26 @@ class IsotonicRateControlManipulation(Manipulation):
 
     ## implement respective base-class function
     def manipulate(self):
-        pass
+        _x = self.mf_dof.value[0]
+        _y = self.mf_dof.value[1]
+        _z = self.mf_dof.value[2]
+          
+        _x *= 0.1
+        _y *= 0.1
+        _z *= 0.1
+
+   ## compute time
+
     
     
     ## implement respective base-class function
     def reset(self):
-        pass
+        self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
 
 #3
 class IsotonicAccelerationControlManipulation(Manipulation):
+
+    TimeIn = avango.SFFloat()
 
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "isotonic-acceleration-control"
@@ -445,16 +456,75 @@ class IsotonicAccelerationControlManipulation(Manipulation):
         # init field connections
         self.mf_dof.connect_from(MF_DOF)
         self.mf_buttons.connect_from(MF_BUTTONS)
+        #self.started = False
+        #self.sf_old = self.sf_mat.value
 
 
-    ## implement respective base-class function
+      ## implement respective base-class function
     def manipulate(self):
-        pass
+        self._x = self.mf_dof.value[0]
+        self._y = self.mf_dof.value[1]
+        self._z = self.mf_dof.value[2]
+          
+        self._x *= 0.1
+        self._y *= 0.1
+        self._z *= 0.1
 
 
-    ## implement respective base-class function
+        timer = avango.nodes.TimeSensor()
+        self.TimeIn.connect_from(timer.Time)
+
+        self._new_mat = avango.gua.make_identity_mat()
+
+        
+
+
+    @field_has_changed(TimeIn)
+    def update(self):
+        time = self.TimeIn.value
+
+            
+        self._new_mat = avango.gua.make_trans_mat(time*self._x, time*self._y, time*self._z)*self.sf_mat.value
+        self._new_mat = self.clamp_matrix(self._new_mat)
+        self.sf_mat.value = self._new_mat
+
+        #print(self.sf_mat.value)
+        
+   
+    
+
+#########
+#monkey rotation
+#  monkey_updater = TimedRotate()
+#  timer = avango.nodes.TimeSensor()
+#  monkey_updater.TimeIn.connect_from(timer.Time)
+#  monkey.Transform.connect_from(monkey_updater.MatrixOut)
+
+   ## compute time
+        #start = time.time()
+        #while self.mf_dof.value[0] == True: #while X-Button is pressed
+        #    _x *= 1.5            
+        #    time.sleep(60 - time.time() % 60)
+
+        #while self.mf_dof.value[1] == True: #while Y-Button is pressed
+        #    _y *= 1.5            
+        #    time.sleep(60 - time.time() % 60)
+
+        #while self.mf_dof.value[2] == True: #while Z-Button is pressed
+        #    _z *= 1.5            
+        #    time.sleep(60 - time.time() % 60)
+    
+        
+    # accumulate input
+    #    _new_mat = avango.gua.make_trans_mat(_x, _y, _z) * self.sf_mat.value
+
+    # possibly clamp matrix (to screen space borders)
+         # apply new matrix to field
+    
+
+    ## implement respective base-class function    
     def reset(self):
-        pass
+        self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
      
     
 
@@ -502,7 +572,7 @@ class ElasticPositionControlManipulation(Manipulation):
 #4
 class ElasticRateControlManipulation(Manipulation):
 
-    TimeIn = avango.SFFloat()
+
 
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "elastic-rate-control"
@@ -510,8 +580,8 @@ class ElasticRateControlManipulation(Manipulation):
         self.mf_dof.connect_from(MF_DOF)
         self.mf_buttons.connect_from(MF_BUTTONS)
         
-        timer = avango.nodes.TimeSensor()
-        self.TimeIn.connect_from(timer.time)
+       # timer = avango.nodes.TimeSensor()
+        #self.TimeIn.connect_from(timer.time)
 
 
 
@@ -539,14 +609,8 @@ class ElasticRateControlManipulation(Manipulation):
 
         #self.sf_mat.value = _new_mat # apply new matrix to field
     
-    @field_has_changed(TimeIn)
-    def update(self):
-        self.current_time = TimeIn
-        self._new_mat = avango.gua.make_trans_mat(_x*self.current_time,_y*self.current_time,_z*self.current_time)*avango.gua.make_rot_mat(_rx*self.current_time,1,0,0)*avango.gua.make_rot_mat(_ry*self.current_time,0,1,0)*avango.gua.make_rot_mat(_rz*self.current_time, 0,0,1)
-        # possibly clamp matrix (to screen space borders)
-        self._new_mat = self.clamp_matrix(_new_mat)
-
-        self.sf_mat.value = _new_mat # apply new matrix to field
+   
+        #self.sf_mat.value = _new_mat # apply new matrix to field
     ## implement respective base-class function
     def reset(self):
          self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
