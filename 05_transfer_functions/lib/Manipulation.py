@@ -445,7 +445,7 @@ class IsotonicRateControlManipulation(Manipulation):
     def reset(self):
         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
 
-#3
+#5
 class IsotonicAccelerationControlManipulation(Manipulation):
 
     TimeIn = avango.SFFloat()
@@ -599,20 +599,75 @@ class ElasticRateControlManipulation(Manipulation):
 #6
 class ElasticAccelerationControlManipulation(Manipulation):
 
+    TimeIn = avango.SFFloat()
+
     def my_constructor(self, MF_DOF, MF_BUTTONS):
-        self.type = "elastic-acceleration-control"
-     
+        self.type = "isotonic-acceleration-control"
+      
         # init field connections
         self.mf_dof.connect_from(MF_DOF)
         self.mf_buttons.connect_from(MF_BUTTONS)
+        #self.started = False
+        #self.sf_old = self.sf_mat.value
+        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
+        self._rx_val = 0
+        self._ry_val = 0
+        self._rz_val = 0
 
 
-    ## implement respective base-class function
-    def manipulate(self): 
-        pass
-             
 
-    ## implement respective base-class function
+      ## implement respective base-class function
+    def manipulate(self):
+        self._x = self.mf_dof.value[0]
+        self._y = self.mf_dof.value[1]
+        self._z = self.mf_dof.value[2]
+        self._rx = self.mf_dof.value[3]
+        self._ry = self.mf_dof.value[4]
+        self._rz = self.mf_dof.value[5]
+          
+        self._x *= 0.01
+        self._y *= 0.01
+        self._z *= 0.01
+        self._rx *= 0.01
+        self._ry *= 0.01
+        self._rz *= 0.01
+
+
+        timer = avango.nodes.TimeSensor()
+        self.TimeIn.connect_from(timer.Time)
+
+        self._new_mat = self.clamp_matrix(self._new_mat)
+
+        
+
+
+    @field_has_changed(TimeIn)
+    def update(self):
+        time = self.TimeIn.value
+            
+
+        
+
+        if self._x != 0 or self._y != 0 or self._z != 0:
+            #self.new_mat *= self.new_mat.get_translate().x
+            self._new_mat = avango.gua.make_trans_mat(self._x, self._y, self._z)*avango.gua.make_rot_mat(self._rx,1,0,0)*avango.gua.make_rot_mat(self._ry,0,1,0)*avango.gua.make_rot_mat(self._rz, 0,0,1)
+            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
+            self.sf_mat.value = self._new_mat
+            self._x_val = self._x
+            self._y_val = self._y
+            self._z_val = self._z
+            self._rx_val = self._rz
+            self._ry_val = self._ry
+            self._rz_val = self._rz
+        else:
+            self._new_mat = avango.gua.make_trans_mat(self._x + self._x_val, self._y + self._y_val, self._z + self._z_val)*avango.gua.make_rot_mat(self._rx + self._rx_val,1,0,0)*avango.gua.make_rot_mat(self._ry + self._ry_val,0,1,0)*avango.gua.make_rot_mat(self._rz + self._rz_val, 0,0,1)
+            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
+            self.sf_mat.value = self._new_mat
+    
+
+    ## implement respective base-class function    
     def reset(self):
-        pass
+        self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
         
