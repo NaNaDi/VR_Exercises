@@ -458,6 +458,9 @@ class IsotonicAccelerationControlManipulation(Manipulation):
         self.mf_buttons.connect_from(MF_BUTTONS)
         #self.started = False
         #self.sf_old = self.sf_mat.value
+        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
 
 
       ## implement respective base-class function
@@ -466,15 +469,15 @@ class IsotonicAccelerationControlManipulation(Manipulation):
         self._y = self.mf_dof.value[1]
         self._z = self.mf_dof.value[2]
           
-        self._x *= 0.1
-        self._y *= 0.1
-        self._z *= 0.1
+        self._x *= 0.01
+        self._y *= 0.01
+        self._z *= 0.01
 
 
         timer = avango.nodes.TimeSensor()
         self.TimeIn.connect_from(timer.Time)
 
-        self._new_mat = avango.gua.make_identity_mat()
+        self._new_mat = self.clamp_matrix(self._new_mat)
 
         
 
@@ -482,44 +485,22 @@ class IsotonicAccelerationControlManipulation(Manipulation):
     @field_has_changed(TimeIn)
     def update(self):
         time = self.TimeIn.value
-
             
-        self._new_mat = avango.gua.make_trans_mat(time*self._x, time*self._y, time*self._z)*self.sf_mat.value
-        self._new_mat = self.clamp_matrix(self._new_mat)
-        self.sf_mat.value = self._new_mat
 
-        #print(self.sf_mat.value)
         
-   
-    
 
-#########
-#monkey rotation
-#  monkey_updater = TimedRotate()
-#  timer = avango.nodes.TimeSensor()
-#  monkey_updater.TimeIn.connect_from(timer.Time)
-#  monkey.Transform.connect_from(monkey_updater.MatrixOut)
-
-   ## compute time
-        #start = time.time()
-        #while self.mf_dof.value[0] == True: #while X-Button is pressed
-        #    _x *= 1.5            
-        #    time.sleep(60 - time.time() % 60)
-
-        #while self.mf_dof.value[1] == True: #while Y-Button is pressed
-        #    _y *= 1.5            
-        #    time.sleep(60 - time.time() % 60)
-
-        #while self.mf_dof.value[2] == True: #while Z-Button is pressed
-        #    _z *= 1.5            
-        #    time.sleep(60 - time.time() % 60)
-    
-        
-    # accumulate input
-    #    _new_mat = avango.gua.make_trans_mat(_x, _y, _z) * self.sf_mat.value
-
-    # possibly clamp matrix (to screen space borders)
-         # apply new matrix to field
+        if self._x != 0 or self._y != 0 or self._z != 0:
+            #self.new_mat *= self.new_mat.get_translate().x
+            self._new_mat = avango.gua.make_trans_mat(self._x, self._y, self._z)
+            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
+            self.sf_mat.value = self._new_mat
+            self._x_val = self._x
+            self._y_val = self._y
+            self._z_val = self._z
+        else:
+            self._new_mat = avango.gua.make_trans_mat(self._x + self._x_val, self._y + self._y_val, self._z + self._z_val)
+            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
+            self.sf_mat.value = self._new_mat
     
 
     ## implement respective base-class function    
