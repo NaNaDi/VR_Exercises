@@ -421,6 +421,13 @@ class IsotonicRateControlManipulation(Manipulation):
 
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "isotonic-rate-control"
+
+        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
+        self._x_pos = 0
+        self._y_pos = 0
+        self._z_pos = 0
           
         # init field connections
         self.mf_dof.connect_from(MF_DOF)
@@ -429,15 +436,40 @@ class IsotonicRateControlManipulation(Manipulation):
 
     ## implement respective base-class function
     def manipulate(self):
-        _x = self.mf_dof.value[0]
-        _y = self.mf_dof.value[1]
-        _z = self.mf_dof.value[2]
-          
-        _x *= 0.1
-        _y *= 0.1
-        _z *= 0.1
+        self._x = self.mf_dof.value[0]
+        self._y = self.mf_dof.value[1]
+        self._z = self.mf_dof.value[2]
 
-   ## compute time
+        self._x *= 0.1
+        self._y *= 0.1
+        self._z *= 0.1
+
+
+        self._x_val = self._x + self._x_val
+
+        self._y_val = self._y + self._y_val
+
+        self._z_val = self._z + self._z_val
+
+        self._x_pos += self._x_val
+
+        self._y_pos += self._y_val
+
+        self._z_pos += self._z_val
+        
+        velocity_factor = 100
+
+
+
+         #accumulate imput
+        _new_mat = avango.gua.make_trans_mat(self._x_pos/velocity_factor, self._y_pos/velocity_factor, self._z_pos/velocity_factor)
+
+        # possibly clamp matrix (to screen space borders)
+        _new_mat = self.clamp_matrix(_new_mat)
+
+        self.sf_mat.value = _new_mat # apply new matrix to field
+
+
 
     
     
@@ -514,7 +546,7 @@ class IsotonicAccelerationControlManipulation(Manipulation):
 class ElasticPositionControlManipulation(Manipulation):
 
     def my_constructor(self, MF_DOF, MF_BUTTONS):
-        self.type = "elastic-rate-control"
+        self.type = "elastic-position-control"
       
         # init field connections
         self.mf_dof.connect_from(MF_DOF)
@@ -553,7 +585,7 @@ class ElasticPositionControlManipulation(Manipulation):
 #4
 class ElasticRateControlManipulation(Manipulation):
 
-
+    TimeIn = avango.SFFloat()
 
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "elastic-rate-control"
@@ -564,37 +596,79 @@ class ElasticRateControlManipulation(Manipulation):
        # timer = avango.nodes.TimeSensor()
         #self.TimeIn.connect_from(timer.time)
 
+        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
+        self._rx_val = 0
+        self._ry_val = 0
+        self._rz_val = 0
+
 
 
     ## implement respective base-class function
     def manipulate(self):
-        _x = self.mf_dof.value[0]
-        _y = self.mf_dof.value[1]
-        _z = self.mf_dof.value[2]
-        _rx = self.mf_dof.value[3]
-        _ry = self.mf_dof.value[4]
-        _rz = self.mf_dof.value[5]
+        self._x = self.mf_dof.value[0]
+        self._y = self.mf_dof.value[1]
+        self._z = self.mf_dof.value[2]
+        self._rx = self.mf_dof.value[3]
+        self._ry = self.mf_dof.value[4]
+        self._rz = self.mf_dof.value[5]
 
-        _x *= 0.1
-        _y *= 0.1
-        _z *= 0.1
-        _rx *= 0.1
-        _ry *= 0.1
-        _rz *= 0.1
+        self._x *= 0.1
+        self._y *= 0.1
+        self._z *= 0.1
+        self._rx *= 0.1
+        self._ry *= 0.1
+        self._rz *= 0.1
 
-        #accumulate imput
-        #self._new_mat = avango.gua.make_trans_mat(_x,_y,_z)*avango.gua.make_rot_mat(_rx,1,0,0)*avango.gua.make_rot_mat(_ry,0,1,0)*avango.gua.make_rot_mat(_rz, 0,0,1)
+        #timer = avango.nodes.TimeSensor()
+        #self.TimeIn.connect_from(timer.Time)
+
+        if(self._x != 0):
+            self._x_val = self._x + self._x_val
+
+        if(self._y != 0):
+            self._y_val = self._y + self._y_val
+
+        if(self._z != 0):
+            self._z_val = self._z + self._z_val
+
+        if(self._rx != 0):
+            self._rx_val = self._rx + self._rx_val
+
+        if(self._ry != 0):
+            self._ry_val = self._ry + self._ry_val
+
+        if(self._rz != 0):
+            self._rz_val = self._rz + self._rz_val
+
+
+
+         #accumulate imput
+        _new_mat = avango.gua.make_trans_mat(self._x_val,self._y_val,self._z_val)*avango.gua.make_rot_mat(self._rx_val,1,0,0)*avango.gua.make_rot_mat(self._ry_val,0,1,0)*avango.gua.make_rot_mat(self._rz_val, 0,0,1)
 
         # possibly clamp matrix (to screen space borders)
-        #self._new_mat = self.clamp_matrix(_new_mat)
+        _new_mat = self.clamp_matrix(_new_mat)
 
-        #self.sf_mat.value = _new_mat # apply new matrix to field
+        self.sf_mat.value = _new_mat # apply new matrix to field
+
+
+        #self._new_mat = self.clamp_matrix(self._new_mat)
+        # possibly clamp matrix (to screen space borders)
     
-   
+    #@field_has_changed(TimeIn)
+   # def update(self):
+   #     time = self.TimeIn.value
+
+      #  self._new_mat = avango.gua.make_trans_mat(self._x + time, self._y + time, self._z + time)*avango.gua.make_rot_mat(self._rx * time, 1, 0 ,0)*avango.gua.make_rot_mat(self._ry * time, 0, 1, 0)*avango.gua.make_rot_mat(self._rz, 0, 0, 1)*self.sf_mat.value
+        
+      #  if(self._x == 0 and self._y == 0 and self._z == 0):
+       #     self.reset()
         #self.sf_mat.value = _new_mat # apply new matrix to field
     ## implement respective base-class function
+
     def reset(self):
-         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
+        self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
 
 #6
 class ElasticAccelerationControlManipulation(Manipulation):
@@ -602,7 +676,7 @@ class ElasticAccelerationControlManipulation(Manipulation):
     TimeIn = avango.SFFloat()
 
     def my_constructor(self, MF_DOF, MF_BUTTONS):
-        self.type = "isotonic-acceleration-control"
+        self.type = "elastic-acceleration-control"
       
         # init field connections
         self.mf_dof.connect_from(MF_DOF)
@@ -646,9 +720,6 @@ class ElasticAccelerationControlManipulation(Manipulation):
     @field_has_changed(TimeIn)
     def update(self):
         time = self.TimeIn.value
-            
-
-        
 
         if self._x != 0 or self._y != 0 or self._z != 0:
             #self.new_mat *= self.new_mat.get_translate().x
