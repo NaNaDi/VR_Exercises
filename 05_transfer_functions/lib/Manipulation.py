@@ -480,62 +480,70 @@ class IsotonicRateControlManipulation(Manipulation):
 #5
 class IsotonicAccelerationControlManipulation(Manipulation):
 
-    TimeIn = avango.SFFloat()
-
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "isotonic-acceleration-control"
-      
-        # init field connections
-        self.mf_dof.connect_from(MF_DOF)
-        self.mf_buttons.connect_from(MF_BUTTONS)
-        #self.started = False
-        #self.sf_old = self.sf_mat.value
+
         self._x_val = 0
         self._y_val = 0
         self._z_val = 0
+        self._x_pos = 0
+        self._y_pos = 0
+        self._z_pos = 0
+        self._x_acc = 0
+        self._y_acc = 0
+        self._z_acc = 0
+          
+        # init field connections
+        self.mf_dof.connect_from(MF_DOF)
+        self.mf_buttons.connect_from(MF_BUTTONS)
 
 
-      ## implement respective base-class function
+    ## implement respective base-class function
     def manipulate(self):
         self._x = self.mf_dof.value[0]
         self._y = self.mf_dof.value[1]
         self._z = self.mf_dof.value[2]
-          
-        self._x *= 0.01
-        self._y *= 0.01
-        self._z *= 0.01
+
+        self._x *= 0.1
+        self._y *= 0.1
+        self._z *= 0.1
 
 
-        timer = avango.nodes.TimeSensor()
-        self.TimeIn.connect_from(timer.Time)
+        self._x_acc = self._x + self._x_acc
 
-        self._new_mat = self.clamp_matrix(self._new_mat)
+        self._y_acc = self._y + self._y_acc
 
+        self._z_acc = self._z + self._z_acc
+
+        self._x_val += self._x_acc
+
+        self._y_val += self._y_acc
+
+        self._z_val += self._z_acc
+
+        self._x_pos += self._x_val
+
+        self._y_pos += self._y_val
+
+        self._z_pos += self._z_val
         
+        velocity_factor = 100
 
 
-    @field_has_changed(TimeIn)
-    def update(self):
-        time = self.TimeIn.value
-            
 
-        
+         #accumulate imput
+        _new_mat = avango.gua.make_trans_mat(self._x_pos/velocity_factor, self._y_pos/velocity_factor, self._z_pos/velocity_factor)
 
-        if self._x != 0 or self._y != 0 or self._z != 0:
-            #self.new_mat *= self.new_mat.get_translate().x
-            self._new_mat = avango.gua.make_trans_mat(self._x, self._y, self._z)
-            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
-            self.sf_mat.value = self._new_mat
-            self._x_val = self._x
-            self._y_val = self._y
-            self._z_val = self._z
-        else:
-            self._new_mat = avango.gua.make_trans_mat(self._x + self._x_val, self._y + self._y_val, self._z + self._z_val)
-            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
-            self.sf_mat.value = self._new_mat
+        # possibly clamp matrix (to screen space borders)
+        _new_mat = self.clamp_matrix(_new_mat)
+
+        self.sf_mat.value = _new_mat # apply new matrix to field
+
+
+
     
-
-    ## implement respective base-class function    
+    
+    ## implement respective base-class function
     def reset(self):
         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
      
@@ -678,21 +686,31 @@ class ElasticAccelerationControlManipulation(Manipulation):
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "elastic-acceleration-control"
       
-        # init field connections
-        self.mf_dof.connect_from(MF_DOF)
-        self.mf_buttons.connect_from(MF_BUTTONS)
-        #self.started = False
-        #self.sf_old = self.sf_mat.value
         self._x_val = 0
         self._y_val = 0
         self._z_val = 0
         self._rx_val = 0
         self._ry_val = 0
         self._rz_val = 0
+        self._x_pos = 0
+        self._y_pos = 0
+        self._z_pos = 0
+        self._rx_pos = 0
+        self._ry_pos = 0
+        self._rz_pos = 0
+        self._x_acc = 0
+        self._y_acc = 0
+        self._z_acc = 0
+        self._rx_acc = 0
+        self._ry_acc = 0
+        self._rz_acc = 0
+          
+        # init field connections
+        self.mf_dof.connect_from(MF_DOF)
+        self.mf_buttons.connect_from(MF_BUTTONS)
 
 
-
-      ## implement respective base-class function
+    ## implement respective base-class function
     def manipulate(self):
         self._x = self.mf_dof.value[0]
         self._y = self.mf_dof.value[1]
@@ -700,45 +718,68 @@ class ElasticAccelerationControlManipulation(Manipulation):
         self._rx = self.mf_dof.value[3]
         self._ry = self.mf_dof.value[4]
         self._rz = self.mf_dof.value[5]
-          
-        self._x *= 0.01
-        self._y *= 0.01
-        self._z *= 0.01
-        self._rx *= 0.01
-        self._ry *= 0.01
-        self._rz *= 0.01
+
+        self._x *= 0.1
+        self._y *= 0.1
+        self._z *= 0.1
+        self._rx *= 0.1
+        self._ry *= 0.1
+        self._rz *= 0.1
 
 
-        timer = avango.nodes.TimeSensor()
-        self.TimeIn.connect_from(timer.Time)
+        self._x_acc = self._x + self._x_acc
 
-        self._new_mat = self.clamp_matrix(self._new_mat)
+        self._y_acc = self._y + self._y_acc
 
+        self._z_acc = self._z + self._z_acc
+
+        self._rx_acc = self._rx + self._rx_acc
+
+        self._ry_acc = self._ry + self._ry_acc
+
+        self._rz_acc = self._rz + self._rz_acc
+
+        self._x_val += self._x_acc
+
+        self._y_val += self._y_acc
+
+        self._z_val += self._z_acc
+
+        self._rx_val += self._rx_acc
+
+        self._ry_val += self._ry_acc
+
+        self._rz_val += self._rz_acc
+
+        self._x_pos += self._x_val
+
+        self._y_pos += self._y_val
+
+        self._z_pos += self._z_val
+
+        self._rx_pos += self._rx_val
+
+        self._ry_pos += self._ry_val
+
+        self._rz_pos += self._rz_val
         
+        velocity_factor = 100
 
 
-    @field_has_changed(TimeIn)
-    def update(self):
-        time = self.TimeIn.value
 
-        if self._x != 0 or self._y != 0 or self._z != 0:
-            #self.new_mat *= self.new_mat.get_translate().x
-            self._new_mat = avango.gua.make_trans_mat(self._x, self._y, self._z)*avango.gua.make_rot_mat(self._rx,1,0,0)*avango.gua.make_rot_mat(self._ry,0,1,0)*avango.gua.make_rot_mat(self._rz, 0,0,1)
-            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
-            self.sf_mat.value = self._new_mat
-            self._x_val = self._x
-            self._y_val = self._y
-            self._z_val = self._z
-            self._rx_val = self._rz
-            self._ry_val = self._ry
-            self._rz_val = self._rz
-        else:
-            self._new_mat = avango.gua.make_trans_mat(self._x + self._x_val, self._y + self._y_val, self._z + self._z_val)*avango.gua.make_rot_mat(self._rx + self._rx_val,1,0,0)*avango.gua.make_rot_mat(self._ry + self._ry_val,0,1,0)*avango.gua.make_rot_mat(self._rz + self._rz_val, 0,0,1)
-            self._new_mat = self.clamp_matrix(self._new_mat*self.sf_mat.value)
-            self.sf_mat.value = self._new_mat
+         #accumulate imput
+        _new_mat = avango.gua.make_trans_mat(self._x_pos/velocity_factor, self._y_pos/velocity_factor, self._z_pos/velocity_factor)*avango.gua.make_rot_mat(self._rx_pos/velocity_factor,1,0,0)*avango.gua.make_rot_mat(self._ry_pos/velocity_factor,0,1,0)*avango.gua.make_rot_mat(self._rz_pos/velocity_factor, 0,0,1)
+
+        # possibly clamp matrix (to screen space borders)
+        _new_mat = self.clamp_matrix(_new_mat)
+
+        self.sf_mat.value = _new_mat # apply new matrix to field
+
+
+
     
-
-    ## implement respective base-class function    
+    
+    ## implement respective base-class function
     def reset(self):
         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
         
