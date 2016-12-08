@@ -821,16 +821,34 @@ class NonIsomorphicIsotonicPositionControlManipulation(Manipulation):
         _y = self.mf_dof.value[1]
         _z = self.mf_dof.value[2]
 
-        _x = math.pow(_x, 3)
-        _y = math.pow(_y, 3)
-        _z = math.pow(_z, 3)
+        _mag = math.hypot(_x,_y)
+
+        if _x != 0 and _y != 0:
+            #Kosinussatz
+            alpha = math.acos((_x * _x - _y * _y - _mag * _mag)/(-2 * _y * _mag))
+            beta = math.acos((_y * _y - _mag * _mag - _x * _x)/(-2 * _mag * _x))
+
+            _mag = math.pow(_mag, 3)
+
+            #print(_mag)
+
+            #Sinussatz
+            if _x > 0:
+                _x = _mag * math.sin(alpha) / math.sin(90)
+            else:
+                _x = (_mag * math.sin(alpha) / math.sin(90))*-1
+
+            if _y > 0:
+                _y = _mag * math.sin(beta) / math.sin(90)
+            else:
+                _y = (_mag * math.sin(beta) / math.sin(90))*-1
 
         _x *= 0.1
         _y *= 0.1
         _z *= 0.1
 
-        print('_x : ', _x)
-        print('_y : ', _y)
+        #print('_x : ', _x)
+        #print('_y : ', _y)
        
         # accumulate input
         _new_mat = avango.gua.make_trans_mat(_x, _y, _z) * self.sf_mat.value
@@ -840,7 +858,7 @@ class NonIsomorphicIsotonicPositionControlManipulation(Manipulation):
 
         self.sf_mat.value = _new_mat # apply new matrix to field
 
-        print('trans-vec: ', self.sf_mat.value.get_translate())
+        #print('trans-vec: ', self.sf_mat.value.get_translate())
     
 
     ## implement respective base-class function    
