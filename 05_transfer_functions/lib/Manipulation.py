@@ -14,6 +14,8 @@ from lib.Device import MouseInput, SpacemouseInput, NewSpacemouseInput
 # ...
 import time
 
+import math
+
 
 ### global variables ###
 #SPACEMOUSE_TYPE = "Spacemouse"
@@ -28,7 +30,9 @@ class ManipulationManager(avango.script.Script):
     sf_key_3 = avango.SFBool()
     sf_key_4 = avango.SFBool()
     sf_key_5 = avango.SFBool()
-    sf_key_6 = avango.SFBool()            
+    sf_key_6 = avango.SFBool()
+    sf_key_7 = avango.SFBool()
+    sf_key_8 = avango.SFBool()          
 
     sf_hand_mat = avango.gua.SFMatrix4()
     sf_dragging_trigger = avango.SFBool()
@@ -107,6 +111,12 @@ class ManipulationManager(avango.script.Script):
 
         self.EACManipulation = ElasticAccelerationControlManipulation()
         self.EACManipulation.my_constructor(self.spacemouseInput.mf_dof, self.spacemouseInput.mf_buttons)
+        
+        self.NIIPCManipulation = NonIsomorphicIsotonicPositionControlManipulation()
+        self.NIIPCManipulation.my_constructor(self.mouseInput.mf_dof, self.mouseInput.mf_buttons)
+
+        self.NIERCManipulation = NonIsomorphicElasticRateControlManipulation()
+        self.NIERCManipulation.my_constructor(self.spacemouseInput.mf_dof, self.spacemouseInput.mf_buttons)
 
 
         ## init keyboard sensor for system control
@@ -119,6 +129,8 @@ class ManipulationManager(avango.script.Script):
         self.sf_key_4.connect_from(self.keyboard_sensor.Button19) # key 4
         self.sf_key_5.connect_from(self.keyboard_sensor.Button20) # key 5
         self.sf_key_6.connect_from(self.keyboard_sensor.Button21) # key 6
+        self.sf_key_7.connect_from(self.keyboard_sensor.Button22) # key 7
+        self.sf_key_8.connect_from(self.keyboard_sensor.Button23) # key 8
 
 
         ### set initial states ###
@@ -136,6 +148,8 @@ class ManipulationManager(avango.script.Script):
         self.ERCManipulation.enable_manipulation(False)
         self.IACManipulation.enable_manipulation(False)      
         self.EACManipulation.enable_manipulation(False)
+        self.NIIPCManipulation.enable_manipulation(False)
+        self.NIERCManipulation.enable_manipulation(False)
         
         # remove existing field connections    
         self.sf_hand_mat.disconnect()
@@ -182,6 +196,20 @@ class ManipulationManager(avango.script.Script):
             # init field connections      
             self.sf_hand_mat.connect_from(self.EACManipulation.sf_mat)
             self.sf_dragging_trigger.connect_from(self.EACManipulation.sf_action_trigger)
+
+        elif self.manipulation_technique == 7:
+            self.NIIPCManipulation.enable_manipulation(True)
+
+            # init field connections      
+            self.sf_hand_mat.connect_from(self.NIIPCManipulation.sf_mat)
+            self.sf_dragging_trigger.connect_from(self.NIIPCManipulation.sf_action_trigger)
+
+        elif self.manipulation_technique == 8:
+            self.NIERCManipulation.enable_manipulation(True)
+
+            # init field connections      
+            self.sf_hand_mat.connect_from(self.NIERCManipulation.sf_mat)
+            self.sf_dragging_trigger.connect_from(self.NIERCManipulation.sf_action_trigger)
 
 
     def start_dragging(self):  
@@ -283,6 +311,17 @@ class ManipulationManager(avango.script.Script):
     def sf_key_6_changed(self):
         if self.sf_key_6.value == True: # key is pressed
             self.set_manipulation_technique(6) # switch to elastic acceleration control
+
+    @field_has_changed(sf_key_7)
+    def sf_key_7_changed(self):
+        print("field_has_changed")
+        if self.sf_key_7.value == True: # key is pressed
+            self.set_manipulation_technique(7) # switch to elastic acceleration control
+
+    @field_has_changed(sf_key_8)
+    def sf_key_8_changed(self):
+        if self.sf_key_8.value == True: # key is pressed
+            self.set_manipulation_technique(8) # switch to elastic acceleration control
 
 
     @field_has_changed(sf_dragging_trigger)
@@ -593,8 +632,6 @@ class ElasticPositionControlManipulation(Manipulation):
 #4
 class ElasticRateControlManipulation(Manipulation):
 
-    TimeIn = avango.SFFloat()
-
     def my_constructor(self, MF_DOF, MF_BUTTONS):
         self.type = "elastic-rate-control"
         # init field connections
@@ -659,21 +696,6 @@ class ElasticRateControlManipulation(Manipulation):
         _new_mat = self.clamp_matrix(_new_mat)
 
         self.sf_mat.value = _new_mat # apply new matrix to field
-
-
-        #self._new_mat = self.clamp_matrix(self._new_mat)
-        # possibly clamp matrix (to screen space borders)
-    
-    #@field_has_changed(TimeIn)
-   # def update(self):
-   #     time = self.TimeIn.value
-
-      #  self._new_mat = avango.gua.make_trans_mat(self._x + time, self._y + time, self._z + time)*avango.gua.make_rot_mat(self._rx * time, 1, 0 ,0)*avango.gua.make_rot_mat(self._ry * time, 0, 1, 0)*avango.gua.make_rot_mat(self._rz, 0, 0, 1)*self.sf_mat.value
-        
-      #  if(self._x == 0 and self._y == 0 and self._z == 0):
-       #     self.reset()
-        #self.sf_mat.value = _new_mat # apply new matrix to field
-    ## implement respective base-class function
 
     def reset(self):
         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
@@ -782,4 +804,124 @@ class ElasticAccelerationControlManipulation(Manipulation):
     ## implement respective base-class function
     def reset(self):
         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
+
+class NonIsomorphicIsotonicPositionControlManipulation(Manipulation):
+
+    def my_constructor(self, MF_DOF, MF_BUTTONS):
+        self.type = "non-isometric-isotonic-position-control"
+    
+        # init field connections
+        self.mf_dof.connect_from(MF_DOF)
+        self.mf_buttons.connect_from(MF_BUTTONS)
+
+
+    ## implement respective base-class function
+    def manipulate(self):
+        _x = self.mf_dof.value[0]
+        _y = self.mf_dof.value[1]
+        _z = self.mf_dof.value[2]
+
+        _x = math.pow(_x, 3)
+        _y = math.pow(_y, 3)
+        _z = math.pow(_z, 3)
+
+        _x *= 0.1
+        _y *= 0.1
+        _z *= 0.1
+
+        print('_x : ', _x)
+        print('_y : ', _y)
+       
+        # accumulate input
+        _new_mat = avango.gua.make_trans_mat(_x, _y, _z) * self.sf_mat.value
+
+        # possibly clamp matrix (to screen space borders)
+        _new_mat = self.clamp_matrix(_new_mat)
+
+        self.sf_mat.value = _new_mat # apply new matrix to field
+
+        print('trans-vec: ', self.sf_mat.value.get_translate())
+    
+
+    ## implement respective base-class function    
+    def reset(self):
+        self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
+
+class NonIsomorphicElasticRateControlManipulation(Manipulation):
+
+    def my_constructor(self, MF_DOF, MF_BUTTONS):
+        self.type = "non-isomorphic-elastic-rate-control"
+        # init field connections
+        self.mf_dof.connect_from(MF_DOF)
+        self.mf_buttons.connect_from(MF_BUTTONS)
+        
+       # timer = avango.nodes.TimeSensor()
+        #self.TimeIn.connect_from(timer.time)
+
+        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
+        self._rx_val = 0
+        self._ry_val = 0
+        self._rz_val = 0
+
+
+
+    ## implement respective base-class function
+    def manipulate(self):
+        self._x = self.mf_dof.value[0]
+        self._y = self.mf_dof.value[1]
+        self._z = self.mf_dof.value[2]
+        self._rx = self.mf_dof.value[3]
+        self._ry = self.mf_dof.value[4]
+        self._rz = self.mf_dof.value[5]
+
+        self._x = math.pow(self._x, 3)
+        self._y = math.pow(self._y, 3)
+        self._z = math.pow(self._z, 3)
+        self._rx = math.pow(self._rx, 3)
+        self._ry = math.pow(self._ry, 3)
+        self._rz = math.pow(self._rz, 3)
+
+        self._x *= 0.1
+        self._y *= 0.1
+        self._z *= 0.1
+        self._rx *= 0.1
+        self._ry *= 0.1
+        self._rz *= 0.1
+
+        #timer = avango.nodes.TimeSensor()
+        #self.TimeIn.connect_from(timer.Time)
+
+        if(self._x != 0):
+            self._x_val = self._x + self._x_val
+
+        if(self._y != 0):
+            self._y_val = self._y + self._y_val
+
+        if(self._z != 0):
+            self._z_val = self._z + self._z_val
+
+        if(self._rx != 0):
+            self._rx_val = self._rx + self._rx_val
+
+        if(self._ry != 0):
+            self._ry_val = self._ry + self._ry_val
+
+        if(self._rz != 0):
+            self._rz_val = self._rz + self._rz_val
+
+
+
+         #accumulate imput
+        _new_mat = avango.gua.make_trans_mat(self._x_val,self._y_val,self._z_val)*avango.gua.make_rot_mat(self._rx_val,1,0,0)*avango.gua.make_rot_mat(self._ry_val,0,1,0)*avango.gua.make_rot_mat(self._rz_val, 0,0,1)
+
+        # possibly clamp matrix (to screen space borders)
+        _new_mat = self.clamp_matrix(_new_mat)
+
+        self.sf_mat.value = _new_mat # apply new matrix to field
+
+    def reset(self):
+        self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
+
         

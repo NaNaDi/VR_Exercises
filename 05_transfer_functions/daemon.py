@@ -105,6 +105,8 @@ def init_keyboard():
         keyboard.buttons[19] = "EV_KEY::KEY_4"
         keyboard.buttons[20] = "EV_KEY::KEY_5"
         keyboard.buttons[21] = "EV_KEY::KEY_6"
+        keyboard.buttons[22] = "EV_KEY::KEY_7"
+        keyboard.buttons[23] = "EV_KEY::KEY_8"
                
 
         device_list.append(keyboard)
