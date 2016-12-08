@@ -879,60 +879,113 @@ class NonIsomorphicElasticRateControlManipulation(Manipulation):
         self._x_val = 0
         self._y_val = 0
         self._z_val = 0
-        self._rx_val = 0
-        self._ry_val = 0
-        self._rz_val = 0
+
 
 
 
     ## implement respective base-class function
     def manipulate(self):
-        self._x = self.mf_dof.value[0]
-        self._y = self.mf_dof.value[1]
-        self._z = self.mf_dof.value[2]
-        self._rx = self.mf_dof.value[3]
-        self._ry = self.mf_dof.value[4]
-        self._rz = self.mf_dof.value[5]
+        _x = self.mf_dof.value[0]
+        _y = self.mf_dof.value[1]
+        _z = self.mf_dof.value[2]
 
-        self._x = math.pow(self._x, 3)
-        self._y = math.pow(self._y, 3)
-        self._z = math.pow(self._z, 3)
-        self._rx = math.pow(self._rx, 3)
-        self._ry = math.pow(self._ry, 3)
-        self._rz = math.pow(self._rz, 3)
 
-        self._x *= 0.1
-        self._y *= 0.1
-        self._z *= 0.1
-        self._rx *= 0.1
-        self._ry *= 0.1
-        self._rz *= 0.1
+
+
+        _x *= 0.1
+        _y *= 0.1
+        _z *= 0.1
 
         #timer = avango.nodes.TimeSensor()
         #self.TimeIn.connect_from(timer.Time)
 
-        if(self._x != 0):
-            self._x_val = self._x + self._x_val
+        if(_x != 0):
+            self._x_val = _x + self._x_val
 
-        if(self._y != 0):
-            self._y_val = self._y + self._y_val
+        if(_y != 0):
+            self._y_val = _y + self._y_val
 
-        if(self._z != 0):
-            self._z_val = self._z + self._z_val
+        if(_z != 0):
+            self._z_val = _z + self._z_val
 
-        if(self._rx != 0):
-            self._rx_val = self._rx + self._rx_val
 
-        if(self._ry != 0):
-            self._ry_val = self._ry + self._ry_val
+        if self._x_val != 0 and self._y_val != 0:
+            _mag = math.hypot(_x,_y)
+            #Kosinussatz
+            alpha = math.acos((self._x_val * self._x_val - self._y_val * self._y_val - _mag * _mag)/(-2 * self._y_val * _mag))
+            beta = math.acos((self._y_val * self._y_val - _mag * _mag - self._x_val * self._x_val)/(-2 * _mag * self._x_val))
 
-        if(self._rz != 0):
-            self._rz_val = self._rz + self._rz_val
+            _mag = math.pow(_mag, 3)
+
+            #print(_mag)
+
+            #Sinussatz
+            if self._x_val > 0:
+                self._x_val = _mag * math.sin(alpha) / math.sin(90)
+            else:
+                self._x_val = (_mag * math.sin(alpha) / math.sin(90))*-1
+
+            if self._y_val > 0:
+                self._y_val = _mag * math.sin(beta) / math.sin(90)
+            else:
+                self._y_val = (_mag * math.sin(beta) / math.sin(90))*-1
+
+        if self._x_val != 0 and self._z_val != 0:
+            _mag = math.hypot(_x,_z)
+            #Kosinussatz
+            print("_x_val: ", self._x_val)
+            print("_z_val: ", self._z_val)
+            temp = (self._x_val * self._x_val - self._z_val * self._z_val - _mag * _mag)/(-2 * self._z_val * _mag)
+            print(temp)
+            alpha = math.acos((self._x_val * self._x_val - self._z_val * self._z_val - _mag * _mag)/(-2 * self._z_val * _mag))
+            beta = math.acos((self._z_val * self._z_val - _mag * _mag - self._x_val * self._x_val)/(-2 * _mag * self._x_val))
+
+            _mag = math.pow(_mag, 3)
+
+            #print(_mag)
+
+            #Sinussatz
+            if self._x_val > 0:
+                self._x_val = _mag * math.sin(alpha) / math.sin(90)
+            else:
+                self._x_val = (_mag * math.sin(alpha) / math.sin(90))*-1
+
+            if self._z_val > 0:
+                self._z_val = _mag * math.sin(beta) / math.sin(90)
+            else:
+                self._z_val = (_mag * math.sin(beta) / math.sin(90))*-1
+
+        if self._z_val != 0 and self._y_val != 0:
+            _mag = math.hypot(_z,_y)
+            #Kosinussatz
+            print("_z_val: ", self._z_val)
+            print("_y_val: ", self._y_val)
+            temp = (self._z_val * self._z_val - self._y_val * self._y_val - _mag * _mag)/(-2 * self._y_val * _mag)
+            print(temp)
+            alpha = math.acos((self._z_val * self._z_val - self._y_val * self._y_val - _mag * _mag)/(-2 * self._y_val * _mag))
+            beta = math.acos((self._y_val * self._y_val - _mag * _mag - self._z_val * self._z_val)/(-2 * _mag * self._z_val))
+
+            _mag = math.pow(_mag, 3)
+
+            #print(_mag)
+
+            #Sinussatz
+            if self._z_val > 0:
+                self._z_val = _mag * math.sin(alpha) / math.sin(90)
+            else:
+                self._z_val = (_mag * math.sin(alpha) / math.sin(90))*-1
+
+            if self._y_val > 0:
+                self._y_val = _mag * math.sin(beta) / math.sin(90)
+            else:
+                self._y_val = (_mag * math.sin(beta) / math.sin(90))*-1
+
+
 
 
 
          #accumulate imput
-        _new_mat = avango.gua.make_trans_mat(self._x_val,self._y_val,self._z_val)*avango.gua.make_rot_mat(self._rx_val,1,0,0)*avango.gua.make_rot_mat(self._ry_val,0,1,0)*avango.gua.make_rot_mat(self._rz_val, 0,0,1)
+        _new_mat = avango.gua.make_trans_mat(self._x_val,self._y_val,self._z_val)
 
         # possibly clamp matrix (to screen space borders)
         _new_mat = self.clamp_matrix(_new_mat)
