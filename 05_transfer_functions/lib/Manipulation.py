@@ -896,8 +896,35 @@ class NonIsomorphicElasticRateControlManipulation(Manipulation):
         _y *= 0.1
         _z *= 0.1
 
-        #timer = avango.nodes.TimeSensor()
-        #self.TimeIn.connect_from(timer.Time)
+
+
+    #für X-Y-Achse
+        if _x != 0 and _y != 0:
+            _mag = math.hypot(_x,_y)
+
+            _mag = math.pow(_mag, 3)
+            _x = _x*math.pow(_mag,2)
+            _y = _y*math.pow(_mag,2)
+
+        
+    
+        #für X-Z-Achse
+        if _x != 0 and _z != 0:
+            _mag = math.hypot(_x,_z)
+
+            _mag = math.pow(_mag, 3)
+            _x = _x*math.pow(_mag,2)
+            _z = _z*math.pow(_mag,2)
+
+
+        #für Y-Z-Achse
+        if _z != 0 and _y != 0:
+            _mag = math.hypot(_z,_y)
+
+            _mag = math.pow(_mag, 3)
+            _z = _z*math.pow(_mag,2)
+            _y = _y*math.pow(_mag,2)
+
 
         if(_x != 0):
             self._x_val = _x + self._x_val
@@ -907,81 +934,6 @@ class NonIsomorphicElasticRateControlManipulation(Manipulation):
 
         if(_z != 0):
             self._z_val = _z + self._z_val
-
-
-        if self._x_val != 0 and self._y_val != 0:
-            _mag = math.hypot(_x,_y)
-            #Kosinussatz
-            alpha = math.acos((self._x_val * self._x_val - self._y_val * self._y_val - _mag * _mag)/(-2 * self._y_val * _mag))
-            beta = math.acos((self._y_val * self._y_val - _mag * _mag - self._x_val * self._x_val)/(-2 * _mag * self._x_val))
-
-            _mag = math.pow(_mag, 3)
-
-            #print(_mag)
-
-            #Sinussatz
-            if self._x_val > 0:
-                self._x_val = _mag * math.sin(alpha) / math.sin(90)
-            else:
-                self._x_val = (_mag * math.sin(alpha) / math.sin(90))*-1
-
-            if self._y_val > 0:
-                self._y_val = _mag * math.sin(beta) / math.sin(90)
-            else:
-                self._y_val = (_mag * math.sin(beta) / math.sin(90))*-1
-
-        if self._x_val != 0 and self._z_val != 0:
-            _mag = math.hypot(_x,_z)
-            #Kosinussatz
-            print("_x_val: ", self._x_val)
-            print("_z_val: ", self._z_val)
-            temp = (self._x_val * self._x_val - self._z_val * self._z_val - _mag * _mag)/(-2 * self._z_val * _mag)
-            print(temp)
-            alpha = math.acos((self._x_val * self._x_val - self._z_val * self._z_val - _mag * _mag)/(-2 * self._z_val * _mag))
-            beta = math.acos((self._z_val * self._z_val - _mag * _mag - self._x_val * self._x_val)/(-2 * _mag * self._x_val))
-
-            _mag = math.pow(_mag, 3)
-
-            #print(_mag)
-
-            #Sinussatz
-            if self._x_val > 0:
-                self._x_val = _mag * math.sin(alpha) / math.sin(90)
-            else:
-                self._x_val = (_mag * math.sin(alpha) / math.sin(90))*-1
-
-            if self._z_val > 0:
-                self._z_val = _mag * math.sin(beta) / math.sin(90)
-            else:
-                self._z_val = (_mag * math.sin(beta) / math.sin(90))*-1
-
-        if self._z_val != 0 and self._y_val != 0:
-            _mag = math.hypot(_z,_y)
-            #Kosinussatz
-            print("_z_val: ", self._z_val)
-            print("_y_val: ", self._y_val)
-            temp = (self._z_val * self._z_val - self._y_val * self._y_val - _mag * _mag)/(-2 * self._y_val * _mag)
-            print(temp)
-            alpha = math.acos((self._z_val * self._z_val - self._y_val * self._y_val - _mag * _mag)/(-2 * self._y_val * _mag))
-            beta = math.acos((self._y_val * self._y_val - _mag * _mag - self._z_val * self._z_val)/(-2 * _mag * self._z_val))
-
-            _mag = math.pow(_mag, 3)
-
-            #print(_mag)
-
-            #Sinussatz
-            if self._z_val > 0:
-                self._z_val = _mag * math.sin(alpha) / math.sin(90)
-            else:
-                self._z_val = (_mag * math.sin(alpha) / math.sin(90))*-1
-
-            if self._y_val > 0:
-                self._y_val = _mag * math.sin(beta) / math.sin(90)
-            else:
-                self._y_val = (_mag * math.sin(beta) / math.sin(90))*-1
-
-
-
 
 
          #accumulate imput
