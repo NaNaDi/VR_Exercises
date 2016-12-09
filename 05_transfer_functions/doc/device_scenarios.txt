@@ -1,0 +1,12 @@
+1. Isotonic Position Control
+    -> Mouse
+2. Isotonic Rate Control
+    -> Space Simulation
+3. Isotonic Acceleration Control
+    -> Accelerator control
+4. Elastic Position Control
+    -> Digger
+5. Elastic Rate Control
+    -> Spacemouse
+6. Elastic Accelerator control
+    -> stress test
