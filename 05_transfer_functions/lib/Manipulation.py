@@ -609,12 +609,12 @@ class ElasticPositionControlManipulation(Manipulation):
         _ry = self.mf_dof.value[4]
         _rz = self.mf_dof.value[5]
 
-        _x *= 0.1
-        _y *= 0.1
-        _z *= 0.1
-        _rx *= 0.1
-        _ry *= 0.1
-        _rz *= 0.1
+        _x *= 0.2
+        _y *= 0.2
+        _z *= 0.2
+        _rx *= 45
+        _ry *= 45
+        _rz *= 45
 
         #accumulate imput
         _new_mat = avango.gua.make_trans_mat(_x,_y,_z)*avango.gua.make_rot_mat(_rx,1,0,0)*avango.gua.make_rot_mat(_ry,0,1,0)*avango.gua.make_rot_mat(_rz, 0,0,1)
@@ -625,7 +625,24 @@ class ElasticPositionControlManipulation(Manipulation):
         self.sf_mat.value = _new_mat # apply new matrix to field
 
          
-    ## implement respective base-class function
+    ## implement respective base-class funct        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
+        self._rx_val = 0
+        self._ry_val = 0
+        self._rz_val = 0
+        self._x_pos = 0
+        self._y_pos = 0
+        self._z_pos = 0
+        self._rx_pos = 0
+        self._ry_pos = 0
+        self._rz_pos = 0
+        self._x_acc = 0
+        self._y_acc = 0
+        self._z_acc = 0
+        self._rx_acc = 0
+        self._ry_acc = 0
+        self._rz_acc = 0
     def reset(self):
          self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
 
@@ -749,17 +766,17 @@ class ElasticAccelerationControlManipulation(Manipulation):
         self._rz *= 0.1
 
 
-        self._x_acc = self._x + self._x_acc
+        self._x_acc = self._x# + self._x_acc
 
-        self._y_acc = self._y + self._y_acc
+        self._y_acc = self._y# + self._y_acc
 
-        self._z_acc = self._z + self._z_acc
+        self._z_acc = self._z# + self._z_acc
 
-        self._rx_acc = self._rx + self._rx_acc
+        self._rx_acc = self._rx# + self._rx_acc
 
-        self._ry_acc = self._ry + self._ry_acc
+        self._ry_acc = self._ry# + self._ry_acc
 
-        self._rz_acc = self._rz + self._rz_acc
+        self._rz_acc = self._rz# + self._rz_acc
 
         self._x_val += self._x_acc
 
@@ -787,6 +804,27 @@ class ElasticAccelerationControlManipulation(Manipulation):
         
         velocity_factor = 100
 
+        '''
+        self._x_acc = self._x + self._x_acc
+
+        self._y_acc = self._y + self._y_acc
+
+        self._z_acc = self._z + self._z_acc
+
+        self._x_val += self._x_acc
+
+        self._y_val += self._y_acc
+
+        self._z_val += self._z_acc
+
+        self._x_pos += self._x_val
+
+        self._y_pos += self._y_val
+
+        self._z_pos += self._z_val
+
+        '''
+
 
 
          #accumulate imput
@@ -804,6 +842,26 @@ class ElasticAccelerationControlManipulation(Manipulation):
     ## implement respective base-class function
     def reset(self):
         self.sf_mat.value = avango.gua.make_identity_mat() # snap hand back to screen center
+
+        self._x_val = 0
+        self._y_val = 0
+        self._z_val = 0
+        self._rx_val = 0
+        self._ry_val = 0
+        self._rz_val = 0
+        self._x_pos = 0
+        self._y_pos = 0
+        self._z_pos = 0
+        self._rx_pos = 0
+        self._ry_pos = 0
+        self._rz_pos = 0
+        self._x_acc = 0
+        self._y_acc = 0
+        self._z_acc = 0
+        self._rx_acc = 0
+        self._ry_acc = 0
+        self._rz_acc = 0
+
 
 class NonIsomorphicIsotonicPositionControlManipulation(Manipulation):
 
@@ -828,7 +886,7 @@ class NonIsomorphicIsotonicPositionControlManipulation(Manipulation):
             alpha = math.acos((_x * _x - _y * _y - _mag * _mag)/(-2 * _y * _mag))
             beta = math.acos((_y * _y - _mag * _mag - _x * _x)/(-2 * _mag * _x))
 
-            _mag = math.pow(_mag, 3)
+            _mag = 2* math.pow(_mag, 3)
 
             #print(_mag)
 
