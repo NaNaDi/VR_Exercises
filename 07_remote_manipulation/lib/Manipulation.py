@@ -7,6 +7,8 @@ import avango.script
 from avango.script import field_has_changed
 import avango.daemon
 
+import math
+
 
 
 
@@ -544,7 +546,7 @@ class GoGo(ManipulationTechnique):
         self.ray_thickness = 0.0075 # in meter
         self.gogo_threshold = 0.35 # in meter
         self.old_pointer_pos = avango.gua.make_identity_mat
-        self.counter = 0.0
+        self.counter = 1.0
 
 
         ### further resources ###
@@ -614,7 +616,9 @@ class GoGo(ManipulationTechnique):
                         avango.gua.make_scale_mat(self.ray_thickness, self.ray_length, self.ray_thickness)
                 
             self.hand_geometry.Tags.value = ["visible"] # set intersection point invisible
-            self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,self.ray_length * -1 + self.counter)
+            temp = math.pow((self.ray_length ),self.counter)*-1
+            #print("temp: ", temp)
+            self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,temp)
             print(self.hand_transform.Transform.value.get_translate().z)
 
             if threshold <= self.gogo_threshold and threshold >= self.gogo_threshold*-1:
@@ -629,7 +633,7 @@ class GoGo(ManipulationTechnique):
                 #
                 #    self.hand_geometry.Tags.value = ["visible"] # set intersection point invisible
                 #    self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,self.ray_length * -1)
-                #    print("inside bounding box")
+                print("inside bounding box")
                 #    print(self.hand_transform.Transform.value.get_translate().z)
             
 
@@ -652,7 +656,7 @@ class GoGo(ManipulationTechnique):
             #
                 #    self.hand_geometry.Tags.value = ["visible"] # set intersection point invisible
                 #    self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,self.ray_length*-1 + self.counter)
-                #    print("outside")
+                print("outside")
                 #    print(self.hand_transform.Transform.value.get_translate().z)
     
                 #else: # something hit
