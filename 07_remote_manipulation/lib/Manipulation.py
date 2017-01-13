@@ -410,7 +410,7 @@ class VirtualHand(ManipulationTechnique):
         self.ray_geometry = _loader.create_geometry_from_file("ray_geometry", "data/objects/cylinder.obj", avango.gua.LoaderFlags.DEFAULTS)
         self.ray_transform = avango.gua.nodes.TransformNode(Name="ray_transform")
         self.ray_transform.Transform.value = \
-            avango.gua.make_trans_mat(0.0,0.0,self.ray_length * -0.5) * \
+            avango.gua.make_trans_mat(0.0,0.0,self.ray_length * 0) * \
             avango.gua.make_rot_mat(-90.0,1,0,0) * \
             avango.gua.make_scale_mat(self.ray_thickness, self.ray_length, self.ray_thickness)
         self.ray_geometry.Material.value.set_uniform("Color", avango.gua.Vec4(1.0,0.0,0.0,1.0))
@@ -438,7 +438,7 @@ class VirtualHand(ManipulationTechnique):
         self.hand_transform = avango.gua.nodes.TransformNode(Name = "hand_transform")
         self.hand_transform.Children.value = [self.hand_geometry]
         #self.hand_transform.Transform.value = avango.gua.make_trans_mat(0,0,self.ray_length)
-        SCENEGRAPH.Root.value.Children.value.append(self.hand_transform)
+        self.pointer_node.Children.value.append(self.hand_transform)
         #self.hand_transform.Tags.value = ["visible"]
 
 
@@ -463,11 +463,11 @@ class VirtualHand(ManipulationTechnique):
                 avango.gua.make_scale_mat(self.ray_thickness, self.ray_length, self.ray_thickness)
         
             self.hand_geometry.Tags.value = ["visible"] # set intersection point invisible
-            self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,self.ray_length * -1)
+            #self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,self.ray_length * -1)
             
 
         #else: # something hit
-        #    self.ray_transform.Transform.value = \
+    #    self.ray_transform.Transform.value = \
         #        avango.gua.make_trans_mat(0.0,0.0,PICK_DISTANCE * -0.5) * \
         #        avango.gua.make_rot_mat(-90.0,1,0,0) * \
         #        avango.gua.make_scale_mat(self.ray_thickness, PICK_DISTANCE, self.ray_thickness)
