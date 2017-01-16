@@ -369,7 +369,7 @@ class VirtualRay(ManipulationTechnique):
 
 
 
-class VirtualHand(ManipulationTechnique):
+class VirtualHand(ManipulationTechnique): #funktioniert
 
     ## constructor
     def __init__(self):
@@ -519,7 +519,7 @@ class VirtualHand(ManipulationTechnique):
         
 
 
-class GoGo(ManipulationTechnique):
+class GoGo(ManipulationTechnique): #effektiv HOMER aber mit Treshhold
 
     ## constructor
     def __init__(self):
@@ -698,7 +698,7 @@ class GoGo(ManipulationTechnique):
 
 
 
-class Homer(ManipulationTechnique):
+class Homer(ManipulationTechnique): #ray-controll, aber nach Pick Hand mit "unserem" Homer
 
     ## constructor
     def __init__(self):
