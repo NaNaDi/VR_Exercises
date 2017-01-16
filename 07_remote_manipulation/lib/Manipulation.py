@@ -389,8 +389,6 @@ class VirtualHand(ManipulationTechnique):
         ### further resources ###
         _loader = avango.gua.nodes.TriMeshLoader()
 
-        
-
 
         self.hand_geometry = _loader.create_geometry_from_file("hand_geometry", "data/objects/hand.obj", avango.gua.LoaderFlags.DEFAULTS)
         self.hand_geometry.Material.value.set_uniform("Color", avango.gua.Vec4(1.0, 0.86, 0.54, 1.0))
