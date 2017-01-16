@@ -163,6 +163,7 @@ class ManipulationTechnique(avango.script.Script):
 
 
         ### resources ###
+        self.mode = True
     
         ## init sensors
         self.pointer_tracking_sensor = avango.daemon.nodes.DeviceSensor(DeviceService = avango.daemon.DeviceService())
@@ -219,18 +220,26 @@ class ManipulationTechnique(avango.script.Script):
     def start_dragging(self, NODE):
         self.dragged_node = NODE        
         self.dragging_offset_mat = avango.gua.make_inverse_mat(self.pointer_node.WorldTransform.value) * self.dragged_node.WorldTransform.value # object transformation in pointer coordinate system
-
   
     def stop_dragging(self): 
         self.dragged_node = None
         self.dragging_offset_mat = avango.gua.make_identity_mat()
+        self.mode = True
 
 
-    def dragging(self):
+    def dragging(self, _trans_node, offset = 0.0):
+        #print("before ", self.dragging_offset_mat)
+        #if self.mode == True:
+        #    self.dragging_offset_mat = avango.gua.make_trans_mat(0,0,offset) * self.dragging_offset_mat
+        #    self.mode = False
+        #print("after ", self.dragging_offset_mat)
         if self.dragged_node is not None: # object to drag
-            _new_mat = self.pointer_node.WorldTransform.value * self.dragging_offset_mat # new object position in world coodinates
+            #self.dragging_offset_mat = avango.gua.make_inverse_mat(self.pointer_node.WorldTransform.value) * self.dragged_node.WorldTransform.value
+            _new_mat = _trans_node.WorldTransform.value * self.dragging_offset_mat # new object position in world coodinates
             _new_mat = avango.gua.make_inverse_mat(self.dragged_node.Parent.value.WorldTransform.value) * _new_mat # transform new object matrix from global to local space
-        
+            #print("before: ", _new_mat)
+            #_new_mat = avango.gua.make_trans_mat(0,0,offset) * _new_mat
+            #print("after: ", _new_mat)
             self.dragged_node.Transform.value = _new_mat
 
 
@@ -357,14 +366,14 @@ class VirtualRay(ManipulationTechnique):
     
             _distance = self.pick_result.Distance.value * self.ray_length # pick distance in ray coordinate system
     
-            #print(_node, _pick_pos, _pick_world_pos, _distance)
+            print(_node, _pick_pos, _pick_world_pos, _distance)
 
         
             self.update_ray_visualization(PICK_WORLD_POS = _pick_world_pos, PICK_DISTANCE = _distance)
 
         
         ## possibly update object dragging
-        self.dragging()
+        self.dragging(_trans_node = self.pointer_node)
 
 
 
@@ -429,7 +438,7 @@ class VirtualHand(ManipulationTechnique):
 
         
         ## possibly update object dragging
-        self.dragging()
+        self.dragging(_trans_node = self.pointer_node)
 
         
 
@@ -470,29 +479,22 @@ class GoGo(ManipulationTechnique):
         self.old_pointer_pos = avango.gua.make_identity_mat
         self.counter = 1.0
         self.calc = 1.0
+
+
        
         
         ### further resources ###
         _loader = avango.gua.nodes.TriMeshLoader()
 
-        ## ToDo: init hand node(s) here
-        # ...
-
 
         self.hand_geometry = _loader.create_geometry_from_file("hand_geometry", "data/objects/hand.obj", avango.gua.LoaderFlags.DEFAULTS)
-        #self.hand_geometry.Transform.value = \
-        #    avango.gua.make_rot_mat(45.0,1,0,0) * \
-        #    avango.gua.make_rot_mat(180.0,0,1,0) * \
-        #    avango.gua.make_scale_mat(0.06)
         self.hand_geometry.Material.value.set_uniform("Color", avango.gua.Vec4(1.0, 0.86, 0.54, 1.0))
         self.hand_geometry.Material.value.set_uniform("Emissivity", 0.9)
         self.hand_geometry.Material.value.set_uniform("Metalness", 0.1)
         
         self.hand_transform = avango.gua.nodes.TransformNode(Name = "hand_transform")
         self.hand_transform.Children.value = [self.hand_geometry]
-        #self.hand_transform.Transform.value = avango.gua.make_trans_mat(0,0,self.ray_length)
         SCENEGRAPH.Root.value.Children.value.append(self.hand_transform)
-        #self.hand_transform.Tags.value = ["visible"]
 
 
         
@@ -503,28 +505,20 @@ class GoGo(ManipulationTechnique):
     ### callback functions ###
     def evaluate(self): # implement respective base-class function
         
-        ## ToDo: init behavior here (use a short ray for object selection --> e.g. 10cm)
-        # ...
         if self.enable_flag == False:
             return
-    
-        #print(self.hand_transform.Transform.value)
-        ## calc ray intersection
-
-        #print("head_pos: ",self.HEAD_NODE.WorldTransform.value.get_translate())
-        #print("pointer_pos: ", self.pointer_node.WorldTransform.value.get_translate())
 
         self.head_to_pointer_offset = self.HEAD_NODE.WorldTransform.value.get_translate().z - self.pointer_node.WorldTransform.value.get_translate().z
 
         if self.head_to_pointer_offset<0 :
             self.head_to_pointer_offset = self.hand_to_pointer_offset * -1
 
-        #print("ray_length: ", self.ray_length)
-        _mf_pick_result = self.calc_pick_result(PICK_MAT = self.pointer_node.WorldTransform.value, PICK_LENGTH = self.head_to_pointer_offset)
-        #print("hits:", len(_mf_pick_result.value))
+        self.hand_to_pointer_offset = self.hand_transform.WorldTransform.value.get_translate().z - self.pointer_node.WorldTransform.value.get_translate().z
 
-        #print("hand_transform: ", self.hand_transform.Transform.value.get_translate().z)
-        #print("pick_result: ", _mf_pick_result.value)
+        if self.hand_to_pointer_offset<0 :
+            self.hand_to_pointer_offset = self.hand_to_pointer_offset * -1
+
+        _mf_pick_result = self.calc_pick_result(PICK_MAT = self.hand_transform.WorldTransform.value, PICK_LENGTH = self.hand_to_pointer_offset)
     
         if len(_mf_pick_result.value) > 0: # intersection found
             self.pick_result = _mf_pick_result.value[0] # get first pick result
@@ -533,17 +527,30 @@ class GoGo(ManipulationTechnique):
 
         if self.head_to_pointer_offset > self.gogo_threshold:
             self.hand_geometry.Material.value.set_uniform("Color", avango.gua.Vec4(1.0, 0.0, 1.0, 1.0))
-            self.calc = (math.pow(self.pointer_node.WorldTransform.value.get_translate().z, self.head_to_pointer_offset) - 1)
-            #print(self.calc)
+            
+            self.calc = (math.pow(self.pointer_node.WorldTransform.value.get_translate().z, self.head_to_pointer_offset-self.gogo_threshold)- 1)
             self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value * avango.gua.make_trans_mat(0.0,0.0,self.calc)
+            self.pointer_node.Transform.value.get_translate().z = self.hand_transform.WorldTransform.value.get_translate().z
         else:
             self.hand_geometry.Material.value.set_uniform("Color", avango.gua.Vec4(1.0, 0.86, 0.54, 1.0))
             self.hand_transform.Transform.value =  self.pointer_node.WorldTransform.value
 
-        print(self.hand_transform.WorldTransform.value.get_translate().z)
+        if self.pick_result != None:
+            _node = self.pick_result.Object.value
+            _pick_pos = self.pick_result.Position.value # pick position in object coordinate system
+            _pick_world_pos = self.pick_result.WorldPosition.value
+            #_node.Parent.value.WorldTransform.value = avango.gua.make_trans_mat(self.hand_transform.WorldTransform.value.get_translate())
+            #print("_node.Parent.value.WorldTransform.value.get_translate().z ", _node.Parent.value.WorldTransform.value.get_translate().z)
+            #print("self.hand_transform.WorldTransform.value.get_translate().z ", self.hand_transform.WorldTransform.value.get_translate().z)
+            
+
         
         ## possibly update object dragging
-        self.dragging()
+        self.dragging(_trans_node = self.hand_transform, offset = self.hand_to_pointer_offset)
+
+    def start_dragging(self, NODE):
+        self.dragged_node = NODE        
+        self.dragging_offset_mat = avango.gua.make_inverse_mat(self.hand_transform.WorldTransform.value) * self.dragged_node.WorldTransform.value # object transformation in pointer coordinate system
 
 
 
@@ -691,4 +698,4 @@ class Homer(ManipulationTechnique):
 
         
         ## possibly update object dragging
-        self.dragging()
+        self.dragging(_trans_node = self.hand_transform)
